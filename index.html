@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif Pecahan, Desimal, & Persen - Kelas 4 SD</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter & Fredoka -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Fredoka', 'Inter', sans-serif;
+            background-color: #f0fdf4;
+        }
+
+        /* Vertical Stacked Fraction Styling */
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            font-weight: 700;
+            line-height: 1.1;
+            margin: 0 4px;
+        }
+        .frac .num {
+            border-bottom: 2px solid currentColor;
+            padding: 0 4px;
+            display: block;
+        }
+        .frac .den {
+            padding: 0 4px;
+            display: block;
+        }
+
+        .card-pop {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .active-q-btn {
+            ring: 3px solid #3b82f6 !important;
+            transform: scale(1.08);
+        }
+
+        @keyframes pulse-subtle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .pulse-anim {
+            animation: pulse-subtle 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Header Utama -->
+    <header class="bg-emerald-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-2">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white text-emerald-600 p-2.5 rounded-2xl shadow">
+                    <i class="fa-solid fa-award text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold leading-tight">Kuis Matematika Super 30</h1>
+                    <p class="text-xs text-emerald-100 font-sans flex items-center gap-1">
+                        <span>Membandingkan & Mengurutkan Pecahan, Desimal, Persen</span>
+                        <span class="bg-emerald-800 text-emerald-200 text-[10px] px-2 py-0.5 rounded-full font-bold ml-1">
+                            <i class="fa-solid fa-shuffle text-[9px] mr-0.5"></i> Jawaban Diacak
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Panel Status & Skor -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-emerald-700 px-3.5 py-1.5 rounded-2xl flex items-center space-x-2 border border-emerald-500">
+                    <i class="fa-solid fa-check-circle text-emerald-300 text-lg"></i>
+                    <span id="stat-progress" class="font-bold text-sm md:text-base">0 / 30 Soal</span>
+                </div>
+                <div class="bg-amber-500 px-3.5 py-1.5 rounded-2xl flex items-center space-x-2 shadow text-slate-900 border border-amber-300">
+                    <i class="fa-solid fa-star text-yellow-100 text-lg"></i>
+                    <span id="stat-score" class="font-bold text-sm md:text-base">Nilai: 0</span>
+                </div>
+                <button onclick="openResetModal()" title="Ulang & Acak Kuis" class="bg-rose-500 hover:bg-rose-600 text-white p-2 rounded-xl text-sm transition shadow flex items-center gap-1 font-semibold">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden sm:inline text-xs">Acak Ulang</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Kolom Kiri: Peta Navigasi Soal (1 - 30) -->
+        <aside class="lg:col-span-4 order-2 lg:order-1">
+            <div class="bg-white rounded-3xl p-5 shadow-md border-2 border-emerald-100 sticky top-20">
+                <div class="flex justify-between items-center mb-4 border-b pb-3">
+                    <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                        <i class="fa-solid fa-table-cells text-emerald-500"></i> Peta Soal (1 - 30)
+                    </h2>
+                    <span class="text-xs font-sans bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-semibold" id="answered-badge">0 Terjawab</span>
+                </div>
+
+                <!-- Grid Tombol 1-30 -->
+                <div class="grid grid-cols-6 sm:grid-cols-6 gap-2" id="nav-grid">
+                    <!-- Diproduksi dinamis melalui JS -->
+                </div>
+
+                <!-- Legenda Warna -->
+                <div class="mt-5 pt-3 border-t text-xs font-sans space-y-1.5 text-slate-600">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded-md bg-emerald-500 inline-block"></span>
+                        <span>Dijawab Benar</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded-md bg-rose-500 inline-block"></span>
+                        <span>Dijawab Salah</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3.5 h-3.5 rounded-md bg-white border-2 border-slate-300 inline-block"></span>
+                        <span>Belum Dijawab</span>
+                    </div>
+                </div>
+
+                <!-- Tombol Selesaikan Kuis / Hasil Akhir -->
+                <button onclick="showFinalResult()" class="w-full mt-5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold py-3 px-4 rounded-2xl shadow transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-trophy text-amber-300"></i>
+                    <span>Lihat Hasil Akhir</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Kolom Kanan: Soal Aktif & Pilihan Jawaban -->
+        <section class="lg:col-span-8 order-1 lg:order-2 space-y-4">
+
+            <!-- Card Soal -->
+            <div class="bg-white rounded-3xl p-6 md:p-8 shadow-md border-2 border-emerald-100 relative min-h-[420px] flex flex-col justify-between">
+                
+                <div>
+                    <!-- Header Kartu Soal -->
+                    <div class="flex flex-wrap justify-between items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+                        <span id="q-number-badge" class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                            <i class="fa-solid fa-circle-question"></i> Soal No. 1 dari 30
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-amber-100 text-amber-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                                <i class="fa-solid fa-shuffle text-[10px]"></i> Opsi Diacak
+                            </span>
+                            <span id="q-topic-badge" class="bg-sky-100 text-sky-800 text-xs font-bold px-3 py-1 rounded-full">
+                                Membandingkan Bilangan
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Pertanyaan Utama -->
+                    <div id="q-text" class="text-lg md:text-xl font-bold text-slate-800 mb-6 leading-relaxed">
+                        <!-- Konten Soal disuntikkan via JS -->
+                    </div>
+
+                    <!-- Pilihan Jawaban (A, B, C, D) -->
+                    <div class="space-y-3" id="options-container">
+                        <!-- Opsi disuntikkan via JS -->
+                    </div>
+
+                    <!-- Instant Feedback & Penjelasan Box -->
+                    <div id="feedback-box" class="hidden mt-6 p-4 rounded-2xl border font-sans text-sm leading-relaxed transition-all duration-300">
+                        <!-- Konten feedback disuntikkan via JS -->
+                    </div>
+                </div>
+
+                <!-- Tombol Navigasi Sebelumnya / Selanjutnya -->
+                <div class="flex justify-between items-center mt-8 pt-4 border-t border-slate-100">
+                    <button id="btn-prev" onclick="changeQuestion(-1)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-5 py-2.5 rounded-2xl transition flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-arrow-left"></i>
+                        <span>Sebelumnya</span>
+                    </button>
+
+                    <span class="text-xs font-sans text-slate-400 font-medium" id="page-indicator">1 / 30</span>
+
+                    <button id="btn-next" onclick="changeQuestion(1)" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-2xl transition flex items-center gap-2 text-sm shadow">
+                        <span>Selanjutnya</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal Hasil Akhir -->
+    <div id="result-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border-4 border-emerald-400 text-center relative">
+            <div class="w-20 h-20 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 shadow">
+                <i class="fa-solid fa-crown"></i>
+            </div>
+
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-1">Hasil Kuis Kamu!</h2>
+            <p class="text-sm text-slate-500 font-sans mb-6">Hebat sudah menyelesaikan petualangan soal ini!</p>
+
+            <div class="grid grid-cols-3 gap-3 mb-6 font-sans">
+                <div class="bg-slate-50 p-3 rounded-2xl border">
+                    <span class="text-xs text-slate-400 block font-semibold">Skor Akhir</span>
+                    <span id="res-score" class="text-2xl font-bold text-amber-500">0</span>
+                </div>
+                <div class="bg-emerald-50 p-3 rounded-2xl border border-emerald-200">
+                    <span class="text-xs text-emerald-600 block font-semibold">Benar</span>
+                    <span id="res-correct" class="text-2xl font-bold text-emerald-600">0</span>
+                </div>
+                <div class="bg-rose-50 p-3 rounded-2xl border border-rose-200">
+                    <span class="text-xs text-rose-600 block font-semibold">Salah</span>
+                    <span id="res-incorrect" class="text-2xl font-bold text-rose-600">0</span>
+                </div>
+            </div>
+
+            <p id="res-message" class="text-sm font-sans font-medium text-slate-700 bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200 mb-6">
+                Pesan motivasi akan muncul di sini.
+            </p>
+
+            <div class="flex gap-3">
+                <button onclick="closeResultModal()" class="w-1/2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 rounded-2xl transition text-sm">
+                    Tutup & Cek Jawaban
+                </button>
+                <button onclick="resetQuiz()" class="w-1/2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 rounded-2xl transition text-sm shadow">
+                    Acak & Ulang Kuis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Ulang / Reset -->
+    <div id="reset-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-2 border-rose-200 text-center relative">
+            <div class="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
+                <i class="fa-solid fa-rotate-right"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Acak & Mengulang Kuis?</h3>
+            <p class="text-sm text-slate-600 font-sans mb-6 leading-relaxed">
+                Semua jawaban tersimpan akan dihapus dan posisi pilihan jawaban (A, B, C, D) akan diacak ulang!
+            </p>
+            <div class="flex gap-3 font-sans">
+                <button onclick="closeResetModal()" class="w-1/2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition text-sm">
+                    Batal
+                </button>
+                <button onclick="confirmResetAction()" class="w-1/2 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2.5 rounded-xl transition text-sm shadow">
+                    Ya, Ulang Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400 font-sans">
+        Kuis Interaktif Matematika SD Kelas 4 • Membandingkan & Mengurutkan Pecahan, Desimal, Persen
+    </footer>
+
+    <!-- JS Logic & Database Soal -->
+    <script>
+        // Database Mentah 30 Soal Kelas 4 SD
+        const rawQuestionsData = [
+            {
+                id: 1,
+                topic: "Membandingkan Pecahan & Desimal",
+                q: "Simbol perbandingan yang tepat untuk mengisi titik-titik berikut adalah:<br><span class='frac'><span class='num'>1</span><span class='den'>2</span></span> ... 0,6",
+                options: ["<", ">", "=", "≥"],
+                correct: 0,
+                explain: "<span class='frac'><span class='num'>1</span><span class='den'>2</span></span> = 0,5. Karena 0,5 lebih kecil dari 0,6 (0,5 < 0,6), maka tanda yang tepat adalah <strong><</strong>."
+            },
+            {
+                id: 2,
+                topic: "Membandingkan Desimal & Persen",
+                q: "Isilah tanda perbandingan yang benar:<br>0,75 ... 70%",
+                options: ["<", ">", "=", "≤"],
+                correct: 1,
+                explain: "70% = 0,70. Karena 0,75 lebih besar dari 0,70 (0,75 > 0,70), maka tanda yang tepat adalah <strong>></strong>."
+            },
+            {
+                id: 3,
+                topic: "Membandingkan Pecahan & Persen",
+                q: "Simbol perbandingan yang tepat adalah:<br><span class='frac'><span class='num'>3</span><span class='den'>5</span></span> ... 60%",
+                options: [">", "<", "=", "≠"],
+                correct: 2,
+                explain: "<span class='frac'><span class='num'>3</span><span class='den'>5</span></span> = 60/100 = 60%. Kedua nilai tersebut persis sama, maka tanda yang tepat adalah <strong>=</strong>."
+            },
+            {
+                id: 4,
+                topic: "Membandingkan Persen & Desimal",
+                q: "Isilah tanda perbandingan yang benar:<br>25% ... 0,3",
+                options: [">", "=", "≥", "<"],
+                correct: 3,
+                explain: "25% = 0,25. Karena 0,25 lebih kecil dari 0,30, maka tanda yang tepat adalah <strong><</strong>."
+            },
+            {
+                id: 5,
+                topic: "Membandingkan Pecahan & Desimal",
+                q: "Tanda yang tepat untuk perbandingan berikut adalah:<br><span class='frac'><span class='num'>4</span><span class='den'>5</span></span> ... 0,75",
+                options: [">", "<", "=", "≤"],
+                correct: 0,
+                explain: "<span class='frac'><span class='num'>4</span><span class='den'>5</span></span> = 0,80. Karena 0,80 lebih besar dari 0,75, maka jawabannya adalah <strong>></strong>."
+            },
+            {
+                id: 6,
+                topic: "Membandingkan Desimal & Persen",
+                q: "Pernyataan perbandingan yang benar adalah:<br>0,08 ... 8%",
+                options: [">", "=", "<", "≠"],
+                correct: 1,
+                explain: "0,08 jika diubah ke persen dikali 100% menjadi 8%. Nilainya sama persis (<strong>=</strong>)."
+            },
+            {
+                id: 7,
+                topic: "Membandingkan Pecahan & Persen",
+                q: "Simbol yang tepat untuk perbandingan:<br><span class='frac'><span class='num'>1</span><span class='den'>4</span></span> ... 30%",
+                options: [">", "=", "<", "≥"],
+                correct: 2,
+                explain: "<span class='frac'><span class='num'>1</span><span class='den'>4</span></span> = 25%. Karena 25% lebih kecil dari 30%, maka hasilnya adalah <strong><</strong>."
+            },
+            {
+                id: 8,
+                topic: "Membandingkan Persen & Desimal",
+                q: "Simbol perbandingan yang benar adalah:<br>85% ... 0,9",
+                options: [">", "=", "≥", "<"],
+                correct: 3,
+                explain: "85% = 0,85. 0,9 = 0,90. Karena 0,85 lebih kecil dari 0,90, maka simbolnya adalah <strong><</strong>."
+            },
+            {
+                id: 9,
+                topic: "Membandingkan Pecahan & Desimal",
+                q: "Isilah tanda perbandingan yang tepat:<br><span class='frac'><span class='num'>7</span><span class='den'>10</span></span> ... 0,7",
+                options: ["=", ">", "<", "≠"],
+                correct: 0,
+                explain: "<span class='frac'><span class='num'>7</span><span class='den'>10</span></span> = 0,7. Keduanya bernilai sama persis (<strong>=</strong>)."
+            },
+            {
+                id: 10,
+                topic: "Membandingkan Desimal & Pecahan",
+                q: "Tanda perbandingan yang tepat adalah:<br>0,45 ... <span class='frac'><span class='num'>2</span><span class='den'>5</span></span>",
+                options: ["<", ">", "=", "≤"],
+                correct: 1,
+                explain: "<span class='frac'><span class='num'>2</span><span class='den'>5</span></span> = 0,40. Karena 0,45 lebih besar dari 0,40, maka tandanya adalah <strong>></strong>."
+            },
+            {
+                id: 11,
+                topic: "Mengurutkan Bilangan",
+                q: "Urutkan dari yang <strong>TERKECIL</strong>:<br>[ <span class='frac'><span class='num'>1</span><span class='den'>4</span></span> ; 0,4 ; 50% ]",
+                options: [
+                    "0,4 ; 50% ; <span class='frac'><span class='num'>1</span><span class='den'>4</span></span>",
+                    "50% ; 0,4 ; <span class='frac'><span class='num'>1</span><span class='den'>4</span></span>",
+                    "<span class='frac'><span class='num'>1</span><span class='den'>4</span></span> ; 0,4 ; 50%",
+                    "<span class='frac'><span class='num'>1</span><span class='den'>4</span></span> ; 50% ; 0,4"
+                ],
+                correct: 2,
+                explain: "Ubah ke persen: <span class='frac'><span class='num'>1</span><span class='den'>4</span></span> = 25%, 0,4 = 40%, 50% = 50%. Urutan terkecil: <strong><span class='frac'><span class='num'>1</span><span class='den'>4</span></span> ; 0,4 ; 50%</strong>."
+            },
+            {
+                id: 12,
+                topic: "Mengurutkan Bilangan",
+                q: "Urutkan dari yang <strong>TERKECIL</strong>:<br>[ 0,15 ; 20% ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span> ]",
+                options: [
+                    "<span class='frac'><span class='num'>2</span><span class='den'>5</span></span> ; 20% ; 0,15",
+                    "20% ; 0,15 ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span>",
+                    "0,15 ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span> ; 20%",
+                    "0,15 ; 20% ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span>"
+                ],
+                correct: 3,
+                explain: "Ubah ke desimal: 0,15 ; 20% = 0,20 ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span> = 0,40. Urutan terkecil: <strong>0,15 ; 20% ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span></strong>."
+            },
+            {
+                id: 13,
+                topic: "Mengurutkan Bilangan",
+                q: "Urutkan dari yang <strong>TERKECIL</strong>:<br>[ 60% ; <span class='frac'><span class='num'>3</span><span class='den'>4</span></span> ; 0,8 ]",
+                options: [
+                    "60% ; <span class='frac'><span class='num'>3</span><span class='den'>4</span></span> ; 0,8",
+                    "0,8 ; <span class='frac'><span class='num'>3</span><span class='den'>4</span></span> ; 60%",
+                    "<span class='frac'><span class='num'>3</span><span class='den'>4</span></span> ; 60% ; 0,8",
+                    "60% ; 0,8 ; <span class='frac'><span class='num'>3</span><span class='den'>4</span></span>"
+                ],
+                correct: 0,
+                explain: "Ubah ke desimal: 60% = 0,60 ; <span class='frac'><span class='num'>3</span><span class='den'>4</span></span> = 0,75 ; 0,8 = 0,80. Urutan terkecil: <strong>60% ; <span class='frac'><span class='num'>3</span><span class='den'>4</span></span> ; 0,8</strong>."
+            },
+            {
+                id: 14,
+                topic: "Mengurutkan Bilangan",
+                q: "Urutkan dari yang <strong>TERBESAR</strong>:<br>[ 0,9 ; 80% ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span> ]",
+                options: [
+                    "<span class='frac'><span class='num'>1</span><span class='den'>2</span></span> ; 80% ; 0,9",
+                    "0,9 ; 80% ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span>",
+                    "80% ; 0,9 ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span>",
+                    "0,9 ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span> ; 80%"
+                ],
+                correct: 1,
+                explain: "Ubah ke persen: 0,9 = 90% ; 80% = 80% ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span> = 50%. Urutan terbesar: <strong>0,9 ; 80% ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span></strong>."
+            },
+            {
+                id: 15,
+                topic: "Mengurutkan Bilangan",
+                q: "Urutkan dari yang <strong>TERBESAR</strong>:<br>[ <span class='frac'><span class='num'>4</span><span class='den'>5</span></span> ; 0,7 ; 50% ]",
+                options: [
+                    "50% ; 0,7 ; <span class='frac'><span class='num'>4</span><span class='den'>5</span></span>",
+                    "0,7 ; <span class='frac'><span class='num'>4</span><span class='den'>5</span></span> ; 50%",
+                    "<span class='frac'><span class='num'>4</span><span class='den'>5</span></span> ; 0,7 ; 50%",
+                    "<span class='frac'><span class='num'>4</span><span class='den'>5</span></span> ; 50% ; 0,7"
+                ],
+                correct: 2,
+                explain: "Ubah ke desimal: <span class='frac'><span class='num'>4</span><span class='den'>5</span></span> = 0,80 ; 0,7 = 0,70 ; 50% = 0,50. Urutan terbesar: <strong><span class='frac'><span class='num'>4</span><span class='den'>5</span></span> ; 0,7 ; 50%</strong>."
+            },
+            {
+                id: 16,
+                topic: "Mengurutkan Bilangan",
+                q: "Urutkan dari yang <strong>TERBESAR</strong>:<br>[ 90% ; 0,85 ; <span class='frac'><span class='num'>3</span><span class='den'>5</span></span> ]",
+                options: [
+                    "<span class='frac'><span class='num'>3</span><span class='den'>5</span></span> ; 0,85 ; 90%",
+                    "0,85 ; 90% ; <span class='frac'><span class='num'>3</span><span class='den'>5</span></span>",
+                    "90% ; <span class='frac'><span class='num'>3</span><span class='den'>5</span></span> ; 0,85",
+                    "90% ; 0,85 ; <span class='frac'><span class='num'>3</span><span class='den'>5</span></span>"
+                ],
+                correct: 3,
+                explain: "Ubah ke persen: 90% = 90% ; 0,85 = 85% ; <span class='frac'><span class='num'>3</span><span class='den'>5</span></span> = 60%. Urutan terbesar: <strong>90% ; 0,85 ; <span class='frac'><span class='num'>3</span><span class='den'>5</span></span></strong>."
+            },
+            {
+                id: 17,
+                topic: "Mengurutkan Bilangan",
+                q: "Urutkan dari yang <strong>TERKECIL</strong>:<br>[ 10% ; <span class='frac'><span class='num'>1</span><span class='den'>5</span></span> ; 0,25 ]",
+                options: [
+                    "10% ; <span class='frac'><span class='num'>1</span><span class='den'>5</span></span> ; 0,25",
+                    "0,25 ; <span class='frac'><span class='num'>1</span><span class='den'>5</span></span> ; 10%",
+                    "<span class='frac'><span class='num'>1</span><span class='den'>5</span></span> ; 10% ; 0,25",
+                    "10% ; 0,25 ; <span class='frac'><span class='num'>1</span><span class='den'>5</span></span>"
+                ],
+                correct: 0,
+                explain: "Ubah ke desimal: 10% = 0,10 ; <span class='frac'><span class='num'>1</span><span class='den'>5</span></span> = 0,20 ; 0,25 = 0,25. Urutan terkecil: <strong>10% ; <span class='frac'><span class='num'>1</span><span class='den'>5</span></span> ; 0,25</strong>."
+            },
+            {
+                id: 18,
+                topic: "Mengurutkan Bilangan",
+                q: "Urutkan dari yang <strong>TERKECIL</strong>:<br>[ 0,3 ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span> ; 70% ]",
+                options: [
+                    "70% ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span> ; 0,3",
+                    "0,3 ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span> ; 70%",
+                    "<span class='frac'><span class='num'>1</span><span class='den'>2</span></span> ; 0,3 ; 70%",
+                    "0,3 ; 70% ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span>"
+                ],
+                correct: 1,
+                explain: "Ubah ke desimal: 0,3 = 0,30 ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span> = 0,50 ; 70% = 0,70. Urutan terkecil: <strong>0,3 ; <span class='frac'><span class='num'>1</span><span class='den'>2</span></span> ; 70%</strong>."
+            },
+            {
+                id: 19,
+                topic: "Mengurutkan Bilangan",
+                q: "Urutkan dari yang <strong>TERBESAR</strong>:<br>[ <span class='frac'><span class='num'>3</span><span class='den'>4</span></span> ; 0,65 ; 40% ]",
+                options: [
+                    "40% ; 0,65 ; <span class='frac'><span class='num'>3</span><span class='den'>4</span></span>",
+                    "0,65 ; <span class='frac'><span class='num'>3</span><span class='den'>4</span></span> ; 40%",
+                    "<span class='frac'><span class='num'>3</span><span class='den'>4</span></span> ; 0,65 ; 40%",
+                    "<span class='frac'><span class='num'>3</span><span class='den'>4</span></span> ; 40% ; 0,65"
+                ],
+                correct: 2,
+                explain: "Ubah ke desimal: <span class='frac'><span class='num'>3</span><span class='den'>4</span></span> = 0,75 ; 0,65 ; 40% = 0,40. Urutan terbesar: <strong><span class='frac'><span class='num'>3</span><span class='den'>4</span></span> ; 0,65 ; 40%</strong>."
+            },
+            {
+                id: 20,
+                topic: "Mengurutkan Bilangan",
+                q: "Urutkan dari yang <strong>TERBESAR</strong>:<br>[ 0,95 ; 80% ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span> ]",
+                options: [
+                    "<span class='frac'><span class='num'>2</span><span class='den'>5</span></span> ; 80% ; 0,95",
+                    "80% ; 0,95 ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span>",
+                    "0,95 ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span> ; 80%",
+                    "0,95 ; 80% ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span>"
+                ],
+                correct: 3,
+                explain: "Ubah ke persen: 0,95 = 95% ; 80% = 80% ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span> = 40%. Urutan terbesar: <strong>0,95 ; 80% ; <span class='frac'><span class='num'>2</span><span class='den'>5</span></span></strong>."
+            },
+            {
+                id: 21,
+                topic: "Soal Cerita Dunia Nyata",
+                q: "Andi makan 0,5 bagian pizza, Budi makan <span class='frac'><span class='num'>3</span><span class='den'>4</span></span> bagian pizza, dan Cici makan 60% bagian pizza. Siapa yang makan pizza paling <strong>BANYAK</strong>?",
+                options: ["Budi", "Andi", "Cici", "Semua sama"],
+                correct: 0,
+                explain: "Ubah ke desimal: Andi = 0,50 ; Budi = 0,75 ; Cici = 0,60. Budi (0,75) makan paling banyak."
+            },
+            {
+                id: 22,
+                topic: "Soal Cerita Dunia Nyata",
+                q: "Toko A memberikan diskon 25%, Toko B diskon 0,3, dan Toko C diskon <span class='frac'><span class='num'>1</span><span class='den'>5</span></span>. Toko mana yang memberikan diskon paling <strong>BESAR</strong>?",
+                options: ["Toko A", "Toko B", "Toko C", "Toko A dan C"],
+                correct: 1,
+                explain: "Ubah ke persen: Toko A = 25% ; Toko B = 30% ; Toko C = 20%. Toko B memberikan diskon paling besar."
+            },
+            {
+                id: 23,
+                topic: "Soal Cerita Dunia Nyata",
+                q: "Baterai HP Roni tersisa 40%, HP Siti tersisa 0,45, dan HP Edo tersisa <span class='frac'><span class='num'>1</span><span class='den'>2</span></span>. HP siapakah yang baterainya paling <strong>SEDIKIT</strong>?",
+                options: ["HP Siti", "HP Edo", "HP Roni", "Sama semua"],
+                correct: 2,
+                explain: "Ubah ke persen: Roni = 40% ; Siti = 45% ; Edo = 50%. Baterai HP Roni paling sedikit (40%)."
+            },
+            {
+                id: 24,
+                topic: "Soal Cerita Dunia Nyata",
+                q: "Panjang pita Merah adalah 0,8 m, pita Hijau <span class='frac'><span class='num'>3</span><span class='den'>4</span></span> m, dan pita Biru 70% m. Pita mana yang paling <strong>PENDEK</strong>?",
+                options: ["Pita Merah", "Pita Hijau", "Semua sama", "Pita Biru"],
+                correct: 3,
+                explain: "Ubah ke meter (desimal): Merah = 0,80 m ; Hijau = 0,75 m ; Biru = 0,70 m. Pita Biru paling pendek."
+            },
+            {
+                id: 25,
+                topic: "Soal Cerita Dunia Nyata",
+                q: "Dalam ujian matematika, nilai Dina adalah 80%, nilai Rian <span class='frac'><span class='num'>4</span><span class='den'>5</span></span> dari skor total, dan nilai Maya adalah 0,85. Siapakah yang mendapat nilai <strong>TERTINGGI</strong>?",
+                options: ["Maya", "Dina", "Rian", "Dina dan Rian"],
+                correct: 0,
+                explain: "Ubah ke desimal: Dina = 0,80 ; Rian = 0,80 ; Maya = 0,85. Maya mendapat nilai tertinggi."
+            },
+            {
+                id: 26,
+                topic: "Kesetaraan Nilai Bilangan",
+                q: "Bilangan berikut yang nilainya <strong>SAMA</strong> dengan 0,4 adalah...",
+                options: [
+                    "<span class='frac'><span class='num'>1</span><span class='den'>4</span></span> dan 4%",
+                    "<span class='frac'><span class='num'>2</span><span class='den'>5</span></span> dan 40%",
+                    "<span class='frac'><span class='num'>4</span><span class='den'>5</span></span> dan 40%",
+                    "<span class='frac'><span class='num'>2</span><span class='den'>10</span></span> dan 4%"
+                ],
+                correct: 1,
+                explain: "0,4 = <span class='frac'><span class='num'>4</span><span class='den'>10</span></span> = <span class='frac'><span class='num'>2</span><span class='den'>5</span></span>. Jika diubah ke persen: 0,4 × 100% = 40%."
+            },
+            {
+                id: 27,
+                topic: "Kesetaraan Nilai Bilangan",
+                q: "Bilangan berikut yang <strong>TIDAK SAMA</strong> nilainya dengan 75% adalah...",
+                options: [
+                    "<span class='frac'><span class='num'>3</span><span class='den'>4</span></span>",
+                    "0,75",
+                    "0,075",
+                    "<span class='frac'><span class='num'>75</span><span class='den'>100</span></span>"
+                ],
+                correct: 2,
+                explain: "75% = 0,75. Pilihan 0,075 itu sama dengan 7,5%, sehingga TIDAK SAMA."
+            },
+            {
+                id: 28,
+                topic: "Kesetaraan Nilai Bilangan",
+                q: "Manakah pasangan bilangan berikut yang nilainya senilai?",
+                options: [
+                    "0,5 dan 5%",
+                    "<span class='frac'><span class='num'>1</span><span class='den'>2</span></span> dan 20%",
+                    "0,25 dan 2,5%",
+                    "0,2 dan <span class='frac'><span class='num'>1</span><span class='den'>5</span></span>"
+                ],
+                correct: 3,
+                explain: "0,2 = <span class='frac'><span class='num'>2</span><span class='den'>10</span></span> = <span class='frac'><span class='num'>1</span><span class='den'>5</span></span>. Jadi 0,2 dan <span class='frac'><span class='num'>1</span><span class='den'>5</span></span> bernilai senilai."
+            },
+            {
+                id: 29,
+                topic: "Letak Posisi Bilangan",
+                q: "Bilangan manakah yang nilainya terletak di antara 0,3 dan 50%?",
+                options: [
+                    "<span class='frac'><span class='num'>2</span><span class='den'>5</span></span>",
+                    "0,2",
+                    "60%",
+                    "<span class='frac'><span class='num'>1</span><span class='den'>4</span></span>"
+                ],
+                correct: 0,
+                explain: "0,3 = 30% dan 50%. Di antara 30% dan 50% ada 40% = <span class='frac'><span class='num'>2</span><span class='den'>5</span></span>."
+            },
+            {
+                id: 30,
+                topic: "Letak Posisi Bilangan",
+                q: "Bilangan manakah yang nilainya <strong>LEBIH BESAR</strong> dari <span class='frac'><span class='num'>3</span><span class='den'>5</span></span>?",
+                options: [
+                    "0,55",
+                    "0,7",
+                    "50%",
+                    "<span class='frac'><span class='num'>1</span><span class='den'>2</span></span>"
+                ],
+                correct: 1,
+                explain: "<span class='frac'><span class='num'>3</span><span class='den'>5</span></span> = 0,60. Dari pilihan yang ada, 0,7 (0,70) lebih besar dari 0,60."
+            }
+        ];
+
+        // Active Processed Questions Array (dengan pilihan jawaban diacak)
+        let activeQuestions = [];
+
+        // Global State & Persistent LocalStorage setup
+        let currentIndex = 0;
+        let userAnswers = {}; // { questionIndex: selectedOptionIndex }
+
+        const STORAGE_KEY_ANSWERS = "quiz_pecahan_user_answers_v2";
+        const STORAGE_KEY_INDEX = "quiz_pecahan_current_index_v2";
+        const STORAGE_KEY_QUESTIONS = "quiz_pecahan_shuffled_questions_v2";
+
+        /**
+         * Mengacak Opsi Jawaban untuk tiap Soal (Fisher-Yates Shuffle)
+         * Memastikan bahwa urutan A, B, C, D diacak secara acak murni tanpa pola A-B-C-D.
+         */
+        function shuffleQuestionOptions(question) {
+            // Ambil teks jawaban benar sebelum diacak
+            const correctText = question.options[question.correct];
+            
+            // Duplikasi array opsi
+            let shuffledOpts = [...question.options];
+
+            // Fisher-Yates Shuffle
+            for (let i = shuffledOpts.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledOpts[i], shuffledOpts[j]] = [shuffledOpts[j], shuffledOpts[i]];
+            }
+
+            // Temukan posisi indeks baru dari jawaban benar
+            const newCorrectIndex = shuffledOpts.indexOf(correctText);
+
+            return {
+                ...question,
+                options: shuffledOpts,
+                correct: newCorrectIndex
+            };
+        }
+
+        // Generate seluruh daftar soal dengan opsi teracak
+        function generateAllShuffledQuestions() {
+            return rawQuestionsData.map(q => shuffleQuestionOptions(q));
+        }
+
+        // Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            initQuizData();
+            renderNavGrid();
+            renderQuestion(currentIndex);
+            updateHeaderStats();
+        });
+
+        // Load or initialize state from LocalStorage
+        function initQuizData() {
+            const savedAnswers = localStorage.getItem(STORAGE_KEY_ANSWERS);
+            if (savedAnswers) {
+                try {
+                    userAnswers = JSON.parse(savedAnswers);
+                } catch (e) {
+                    userAnswers = {};
+                }
+            }
+
+            const savedIdx = localStorage.getItem(STORAGE_KEY_INDEX);
+            if (savedIdx !== null) {
+                currentIndex = parseInt(savedIdx, 10) || 0;
+            }
+
+            const savedQuestions = localStorage.getItem(STORAGE_KEY_QUESTIONS);
+            if (savedQuestions) {
+                try {
+                    activeQuestions = JSON.parse(savedQuestions);
+                } catch (e) {
+                    activeQuestions = generateAllShuffledQuestions();
+                    saveState();
+                }
+            } else {
+                activeQuestions = generateAllShuffledQuestions();
+                saveState();
+            }
+        }
+
+        // Save current state to LocalStorage
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY_ANSWERS, JSON.stringify(userAnswers));
+            localStorage.setItem(STORAGE_KEY_INDEX, currentIndex.toString());
+            localStorage.setItem(STORAGE_KEY_QUESTIONS, JSON.stringify(activeQuestions));
+        }
+
+        // Render Peta Soal Grid (1-30)
+        function renderNavGrid() {
+            const gridContainer = document.getElementById('nav-grid');
+            gridContainer.innerHTML = '';
+
+            activeQuestions.forEach((q, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `nav-btn-${idx}`;
+                btn.innerText = idx + 1;
+                btn.onclick = () => jumpToQuestion(idx);
+
+                // Default styling
+                let btnClasses = "w-full aspect-square rounded-xl text-xs md:text-sm font-bold border-2 transition flex items-center justify-center ";
+
+                if (userAnswers.hasOwnProperty(idx)) {
+                    const isCorrect = userAnswers[idx] === q.correct;
+                    if (isCorrect) {
+                        btnClasses += "bg-emerald-500 text-white border-emerald-600 ";
+                    } else {
+                        btnClasses += "bg-rose-500 text-white border-rose-600 ";
+                    }
+                } else {
+                    btnClasses += "bg-white text-slate-700 border-slate-200 hover:bg-slate-100 ";
+                }
+
+                if (idx === currentIndex) {
+                    btnClasses += "active-q-btn ";
+                }
+
+                btn.className = btnClasses;
+                gridContainer.appendChild(btn);
+            });
+
+            // Update badge answered count
+            const answeredCount = Object.keys(userAnswers).length;
+            document.getElementById('answered-badge').innerText = `${answeredCount} Terjawab`;
+        }
+
+        // Render Active Question
+        function renderQuestion(idx) {
+            currentIndex = idx;
+            saveState();
+
+            const q = activeQuestions[idx];
+
+            // Badge & Topic
+            document.getElementById('q-number-badge').innerHTML = `<i class="fa-solid fa-circle-question"></i> Soal No. ${idx + 1} dari 30`;
+            document.getElementById('q-topic-badge').innerText = q.topic;
+            document.getElementById('page-indicator').innerText = `${idx + 1} / 30`;
+
+            // Question Text
+            document.getElementById('q-text').innerHTML = q.q;
+
+            // Options Container
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const isAnswered = userAnswers.hasOwnProperty(idx);
+            const userChoice = userAnswers[idx];
+
+            const optionLabels = ["A", "B", "C", "D"];
+
+            q.options.forEach((optText, optIdx) => {
+                const optBtn = document.createElement('button');
+                optBtn.disabled = isAnswered;
+
+                let optClass = "w-full text-left p-3.5 md:p-4 rounded-2xl border-2 font-semibold text-sm md:text-base flex items-center justify-between transition ";
+
+                if (!isAnswered) {
+                    optClass += "bg-slate-50 hover:bg-emerald-50 border-slate-200 hover:border-emerald-300 text-slate-800 ";
+                    optBtn.onclick = () => selectAnswer(idx, optIdx);
+                } else {
+                    // Feedback mode
+                    if (optIdx === q.correct) {
+                        optClass += "bg-emerald-500 text-white border-emerald-600 shadow ";
+                    } else if (optIdx === userChoice && userChoice !== q.correct) {
+                        optClass += "bg-rose-500 text-white border-rose-600 shadow ";
+                    } else {
+                        optClass += "bg-slate-100 text-slate-400 border-slate-200 opacity-60 ";
+                    }
+                }
+
+                optBtn.className = optClass;
+
+                let iconHtml = `<span class="w-7 h-7 rounded-lg bg-black/10 flex items-center justify-center font-bold text-xs mr-3 shrink-0">${optionLabels[optIdx]}</span>`;
+                
+                let checkCrossIcon = "";
+                if (isAnswered) {
+                    if (optIdx === q.correct) {
+                        checkCrossIcon = `<i class="fa-solid fa-circle-check text-xl ml-2"></i>`;
+                    } else if (optIdx === userChoice) {
+                        checkCrossIcon = `<i class="fa-solid fa-circle-xmark text-xl ml-2"></i>`;
+                    }
+                }
+
+                optBtn.innerHTML = `<div class="flex items-center">${iconHtml}<span>${optText}</span></div>${checkCrossIcon}`;
+                optionsContainer.appendChild(optBtn);
+            });
+
+            // Feedback Box
+            const feedbackBox = document.getElementById('feedback-box');
+            if (isAnswered) {
+                const isCorrect = userChoice === q.correct;
+                feedbackBox.classList.remove('hidden', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-900', 'bg-rose-50', 'border-rose-200', 'text-rose-900');
+
+                if (isCorrect) {
+                    feedbackBox.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-950');
+                    feedbackBox.innerHTML = `
+                        <div class="flex items-center gap-2 font-bold text-emerald-700 mb-1 text-base">
+                            <i class="fa-solid fa-circle-check text-lg"></i> Jawaban Kamu BENAR!
+                        </div>
+                        <div>${q.explain}</div>
+                    `;
+                } else {
+                    feedbackBox.classList.add('bg-rose-50', 'border-rose-300', 'text-rose-950');
+                    feedbackBox.innerHTML = `
+                        <div class="flex items-center gap-2 font-bold text-rose-700 mb-1 text-base">
+                            <i class="fa-solid fa-circle-xmark text-lg"></i> Jawaban Kamu Kurang Tepat
+                        </div>
+                        <div class="mb-1">Jawaban benar adalah Pilihan <strong>${optionLabels[q.correct]}</strong> (${q.options[q.correct]}).</div>
+                        <div class="text-xs border-t border-rose-200 pt-2 mt-2">${q.explain}</div>
+                    `;
+                }
+            } else {
+                feedbackBox.classList.add('hidden');
+            }
+
+            // Update Previous/Next Buttons state
+            document.getElementById('btn-prev').disabled = (idx === 0);
+            document.getElementById('btn-prev').style.opacity = (idx === 0) ? "0.5" : "1";
+            
+            document.getElementById('btn-next').disabled = (idx === activeQuestions.length - 1);
+            document.getElementById('btn-next').style.opacity = (idx === activeQuestions.length - 1) ? "0.5" : "1";
+
+            renderNavGrid();
+        }
+
+        // Handle Selecting Answer
+        function selectAnswer(qIdx, optIdx) {
+            if (userAnswers.hasOwnProperty(qIdx)) return;
+
+            userAnswers[qIdx] = optIdx;
+            saveState();
+
+            const isCorrect = optIdx === activeQuestions[qIdx].correct;
+
+            if (isCorrect) {
+                confetti({
+                    particleCount: 20,
+                    spread: 60,
+                    origin: { y: 0.7 }
+                });
+            }
+
+            renderQuestion(qIdx);
+            updateHeaderStats();
+        }
+
+        // Change Question (+1 / -1)
+        function changeQuestion(step) {
+            const newIdx = currentIndex + step;
+            if (newIdx >= 0 && newIdx < activeQuestions.length) {
+                renderQuestion(newIdx);
+            }
+        }
+
+        // Jump to specific question index
+        function jumpToQuestion(idx) {
+            renderQuestion(idx);
+        }
+
+        // Update Header Stats & Score
+        function updateHeaderStats() {
+            const answeredKeys = Object.keys(userAnswers);
+            const totalAnswered = answeredKeys.length;
+
+            let correctCount = 0;
+            answeredKeys.forEach(k => {
+                if (userAnswers[k] === activeQuestions[k].correct) {
+                    correctCount++;
+                }
+            });
+
+            // Score formula: (Correct / 30) * 100
+            const score = Math.round((correctCount / activeQuestions.length) * 100);
+
+            document.getElementById('stat-progress').innerText = `${totalAnswered} / 30 Soal`;
+            document.getElementById('stat-score').innerText = `Nilai: ${score}`;
+        }
+
+        // Show Final Result Modal
+        function showFinalResult() {
+            const answeredKeys = Object.keys(userAnswers);
+            let correctCount = 0;
+            
+            answeredKeys.forEach(k => {
+                if (userAnswers[k] === activeQuestions[k].correct) {
+                    correctCount++;
+                }
+            });
+
+            const total = activeQuestions.length;
+            const incorrectCount = answeredKeys.length - correctCount;
+            const score = Math.round((correctCount / total) * 100);
+
+            document.getElementById('res-score').innerText = score;
+            document.getElementById('res-correct').innerText = `${correctCount} Soal`;
+            document.getElementById('res-incorrect').innerText = `${incorrectCount} Soal`;
+
+            let msg = "";
+            if (score === 100) {
+                msg = "🌟 LUAR BIASA PERFECT! Kamu sudah sangat menguasai Pecahan, Desimal, dan Persen!";
+            } else if (score >= 80) {
+                msg = "🎉 HEBAT SEKALI! Nilai kamu sangat tinggi! Pertahankan ya!";
+            } else if (score >= 60) {
+                msg = "👍 BAGUS! Kamu sudah paham sebagian besar materi. Yuk pelajari lagi yang belum pas!";
+            } else {
+                msg = "💪 TETAP SEMANGAT! Coba ulang kuis dan pelajari penjelasan di setiap soal ya!";
+            }
+
+            document.getElementById('res-message').innerText = msg;
+            document.getElementById('result-modal').classList.remove('hidden');
+
+            confetti({
+                particleCount: 80,
+                spread: 100,
+                origin: { y: 0.5 }
+            });
+        }
+
+        function closeResultModal() {
+            document.getElementById('result-modal').classList.add('hidden');
+        }
+
+        // Reset Modal Handlers
+        function openResetModal() {
+            document.getElementById('reset-modal').classList.remove('hidden');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.add('hidden');
+        }
+
+        function confirmResetAction() {
+            closeResetModal();
+            resetQuiz();
+        }
+
+        // Reset Quiz Data & Shuffle Answers Freshly
+        function resetQuiz() {
+            localStorage.removeItem(STORAGE_KEY_ANSWERS);
+            localStorage.removeItem(STORAGE_KEY_INDEX);
+            localStorage.removeItem(STORAGE_KEY_QUESTIONS);
+
+            userAnswers = {};
+            currentIndex = 0;
+            
+            // Re-shuffle options for all questions anew
+            activeQuestions = generateAllShuffledQuestions();
+            saveState();
+
+            closeResultModal();
+            renderQuestion(0);
+            updateHeaderStats();
+        }
+    </script>
+</body>
+</html>
